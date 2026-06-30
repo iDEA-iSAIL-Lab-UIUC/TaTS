@@ -1,3 +1,29 @@
+# =============================================================================
+# TaTS NOTE — FiLM is CHANNEL-INDEPENDENT: output channel 0 depends only on
+# input channel 0. TaTS appends text as extra channels but reads only
+# outputs[:, :, 0], so text never reaches the prediction -> prompt_emb gets ZERO
+# gradient and its MLP never trains. (Channel-mixing models like iTransformer
+# are fine: attention lets text reach channel 0.)
+#
+# FIX — fuse text into the single channel right after the cat. Many options
+# (concat+project, gating, cross-attention); below is a residual where the
+# series stays dominant and text only adds a small gated correction:
+#
+#     batch_x = torch.cat([batch_x, prompt_emb], dim=-1)  # [B, L, 1 + text_emb]
+#     batch_x = self.ts_text_fusion(batch_x)              # [B, L, 1]
+#
+#     class TSTextFusion(nn.Module):                      # [B,L,1+text_emb]->[B,L,1]
+#         def __init__(self, text_emb, hidden=64, init_gate=0.1):
+#             super().__init__()
+#             self.text_residual = nn.Sequential(
+#                 nn.Linear(text_emb, hidden), nn.ReLU(), nn.Linear(hidden, 1))
+#             self.gate = nn.Parameter(torch.tensor(float(init_gate)))  # small: ts dominates
+#         def forward(self, x):
+#             return x[..., :1] + self.gate * self.text_residual(x[..., 1:])
+#
+# Create it in Exp_Long_Term_Forecast.__init__ (on device, add to an optimizer)
+# and build the backbone with enc_in = 1 (FiLM's affine params are sized by it).
+# =============================================================================
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
