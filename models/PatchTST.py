@@ -78,7 +78,7 @@ class Model(nn.Module):
         x_enc = x_enc - means
         stdev = torch.sqrt(
             torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x_enc /= stdev
+        x_enc = x_enc / stdev
 
         # do patching and embedding
         x_enc = x_enc.permute(0, 2, 1)
@@ -114,7 +114,7 @@ class Model(nn.Module):
         stdev = torch.sqrt(torch.sum(x_enc * x_enc, dim=1) /
                            torch.sum(mask == 1, dim=1) + 1e-5)
         stdev = stdev.unsqueeze(1).detach()
-        x_enc /= stdev
+        x_enc = x_enc / stdev
 
         # do patching and embedding
         x_enc = x_enc.permute(0, 2, 1)
@@ -147,7 +147,7 @@ class Model(nn.Module):
         x_enc = x_enc - means
         stdev = torch.sqrt(
             torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x_enc /= stdev
+        x_enc = x_enc / stdev
 
         # do patching and embedding
         x_enc = x_enc.permute(0, 2, 1)
@@ -180,7 +180,7 @@ class Model(nn.Module):
         x_enc = x_enc - means
         stdev = torch.sqrt(
             torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x_enc /= stdev
+        x_enc = x_enc / stdev
 
         # do patching and embedding
         x_enc = x_enc.permute(0, 2, 1)

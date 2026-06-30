@@ -516,12 +516,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
 
                 # batch_x is [bsz, seq_len, num_vars], prompt_emb is [bsz, seq_len, text_embedding_dim]. concatenate them in the last dimension
-                batch_x = torch.cat([batch_x, prompt_emb], dim=-1).detach()
+                batch_x = torch.cat([batch_x, prompt_emb], dim=-1)
 
                 # dec_inp is [bsz, label_len + pred_len, num_vars], where only label_len is the true data, the rest is 0
                 text_dec_inp = torch.zeros((self.args.batch_size, self.args.pred_len, self.text_embedding_dim)).to(self.device)
                 text_dec_inp = torch.cat([prompt_emb[:, :self.args.label_len, :], text_dec_inp], dim=1).float().to(self.device)
-                dec_inp = torch.cat([dec_inp, text_dec_inp], dim=-1).detach()
+                dec_inp = torch.cat([dec_inp, text_dec_inp], dim=-1)
 
                 # encoder - decoder
                 if self.args.use_amp:
@@ -540,8 +540,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 # TODO: this only works for single variate time series
                 outputs = outputs[:, :, 0].unsqueeze(-1)
                 outputs = (1-self.prompt_weight)*outputs+self.prompt_weight*prior_y
-            
-                
+
+
                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                 loss = criterion(outputs, batch_y)
                 train_loss.append(loss.item())
